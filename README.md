@@ -10,22 +10,6 @@ dependencies simply run:
 poetry install
 ```
 
-`Ocrina` uses `tesseract` as the OCR engine, you can install it using your package manager:
-
-``` shell
-# Arch Linux
-sudo pacman -S tesseract tesseract-data-eng tesseract-data-ita
-
-# Ubuntu
-sudo apt-get install tesseract-ocr tesseract-ocr-eng tesseract-ocr-ita
-
-# MacOS
-brew install tesseract
-
-# Windows
-choco install tesseract
-```
-
 ## Usage
 
 You can run the tool using poetry:

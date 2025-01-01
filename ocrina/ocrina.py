@@ -2,6 +2,7 @@ import argparse
 import importlib.metadata as metadata
 from argparse import Namespace
 from datetime import datetime
+from glob import glob
 
 import cv2
 
@@ -17,7 +18,7 @@ class Ocrina:
         self.logger = Logger()
         self.args = self.parse_args()
         self.set_verbosity()
-        self.recognizer = Recognizer()
+        self.recognizer = None
 
     @staticmethod
     def parse_args() -> Namespace:
@@ -34,6 +35,10 @@ class Ocrina:
                             help='Enable on-demand mode.')
         parser.add_argument('--files', '-f', nargs='+', required=False,
                             help='List of files to process.')
+        parser.add_argument('--gpu', action='store_true', default=False,
+                            help='Enable GPU support.')
+        parser.add_argument('--languages', '-l', nargs='+', required=False, default=['en'],
+                            help='List of languages to use.')
         return parser.parse_args()
 
     def check_args(self) -> None:
@@ -60,6 +65,9 @@ class Ocrina:
         self.check_args()
         self.logger.info(f"Running...")
         self.logger.debug(self.args)
+        languages = self.args.languages
+        use_gpu = self.args.gpu
+        self.recognizer = Recognizer(languages=languages, use_gpu=use_gpu)
         if self.args.files:
             self.recognize_files()
         elif self.args.on_demand:
@@ -69,15 +77,18 @@ class Ocrina:
             exit(1)
 
     def recognize_files(self):
-        for file in self.args.files:
+        files = set()
+        for arg in self.args.files:
+            files.update(glob(arg))
+        for file in files:
             self.logger.info(f"Processing file: {file}")
             text = self.recognizer.recognize_file(file)
-            self.logger.info(f"Text: {text}")
+            print(text)
 
     def on_demand(self):
         self.logger.info("Running in on-demand mode.")
-        width = 2560
-        height = 1440
+        width = 1920
+        height = 1080
         fps = 30
         capture_format = 'MJPG'
         esc_key = 27
@@ -95,9 +106,9 @@ class Ocrina:
         cv2.namedWindow("preview")
         vc = cv2.VideoCapture(0)
 
-        # vc.set(cv2.CAP_PROP_FPS, fps)
-        # vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        # vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        vc.set(cv2.CAP_PROP_FPS, fps)
+        vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         vc.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc(*capture_format))
 
         frame = None
@@ -116,10 +127,9 @@ class Ocrina:
                 break
             if (datetime.now() - last_pooling_time).seconds > pooling_seconds:
                 label = "Recognizing..."
-                text = self.recognizer.recognize_raw_image(frame)
-                print("Text: ", text)
+                text = self.recognizer.recognize_image(frame)
                 if text is not None and len(text) > 0:
-                    self.logger.info(f"Text: {text}")
+                    print(text)
                 last_pooling_time = datetime.now()
 
         vc.release()

@@ -6,7 +6,7 @@ from ocrina.models.log_level import LogLevel
 class Logger:
     def __init__(self, log_level: LogLevel | int = LogLevel.INFO):
         self.log_level = log_level
-        self.logger = logging.getLogger("ocrina")
+        self.logger = logging.getLogger()
         self.set_log_level(log_level)
         self.format = '%(levelname)-5s :: %(message)s'
         logging.basicConfig(format=self.format)

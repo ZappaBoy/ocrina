@@ -10,7 +10,8 @@ packages = [{ include = "ocrina" }]
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
 pydantic = "^2.4.2"
-pytesseract = "^0.3.13"
+pillow = "^11.0.0"
+easyocr = "^1.7.2"
 opencv-python = "^4.10.0.84"
 
 [tool.poetry.group.dev.dependencies]
